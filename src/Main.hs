@@ -49,22 +49,24 @@ withDevice venId prodIds hnd = do
   if V.null devs1 
     then return $ error "Device not found"
     else V.mapM_ hnd devs1
+
+controlSetup :: ControlSetup
+controlSetup = ControlSetup
+  { controlSetupRequestType = Class,
+    controlSetupRecipient = ToInterface,
+    controlSetupRequest = _SET_REPORT,
+    controlSetupValue = 0x0300,
+    controlSetupIndex = 2
+  }
    
 enableRazer :: DeviceHandle -> IO ()
 enableRazer devHndl = do
   putStrLn "WRITING SET_REPORT"
-  writeControlExact devHndl
-    Class 
-    ToInterface 
-    _SET_REPORT 
-    0x0300 
-    2
-    cdata
-    noTimeout
+  writeControlExact devHndl controlSetup cdata noTimeout
   
 main :: IO ()
 main = do
-  withDevice 0x1532 [0x010d, 0x010e, 0x010f] $ \dev -> do
+  withDevice 0x1532 [0x0040, 0x010d, 0x010e, 0x010f, 0x011b] $ \dev -> do
   withDeviceHandle dev $ \devHndl ->
     withDetachedKernelDriver devHndl 2 $
     withClaimedInterface devHndl 2 $ do
